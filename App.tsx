@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
@@ -12,8 +12,12 @@ import {
   TrendingUp,
   Award,
   Users,
-  Search
+  Search,
+  ChevronDown
 } from 'lucide-react';
+
+// Data
+import { SERVICES } from './constants';
 
 // Pages
 import Home from './pages/Home';
@@ -23,11 +27,39 @@ import CaseStudies from './pages/CaseStudies';
 import Blog from './pages/Blog';
 import Contact from './pages/Contact';
 
+// Dedicated Service Pages
+import SEOService from './pages/services/SEO';
+import PPCService from './pages/services/PPC';
+import SMMService from './pages/services/SMM';
+import WebDevService from './pages/services/WebDev';
+
+// Helper to get consistent service paths
+const getServicePath = (id: string) => {
+  const slugMap: Record<string, string> = {
+    'smm': 'social-media',
+    'web-dev': 'web-development'
+  };
+  return `/services/${slugMap[id] || id}`;
+};
+
+// Helper to get shorter menu names from full service titles
+const getServiceMenuName = (id: string) => {
+  const nameMap: Record<string, string> = {
+    'seo': 'SEO Services',
+    'ppc': 'PPC Management',
+    'smm': 'Social Media Marketing',
+    'web-dev': 'Web Development'
+  };
+  return nameMap[id] || id;
+};
+
 // Components
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -35,14 +67,40 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsServicesOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'Services', path: '/services' },
+    { name: 'About Us', path: '/about' },
+  ];
+
+  // Dynamically generated service links
+  const servicesLinks = [
+    { name: 'All Services', path: '/services' },
+    ...SERVICES.map(service => ({
+      name: getServiceMenuName(service.id),
+      path: getServicePath(service.id)
+    }))
+  ];
+
+  const otherLinks = [
     { name: 'Case Studies', path: '/case-studies' },
-    { name: 'Blog', path: '/blog' },
+    { name: 'Resources', path: '/resources' },
     { name: 'Contact', path: '/contact' },
   ];
+
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname !== '/') return false;
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
@@ -56,13 +114,55 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
-                  location.pathname === link.path ? 'text-blue-600' : 'text-slate-600'
+                  isActive(link.path) ? 'text-blue-600' : 'text-slate-600'
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+            
+            {/* Services Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsServicesOpen(!isServicesOpen)}
+                className={`flex items-center space-x-1 text-sm font-semibold transition-colors hover:text-blue-600 ${
+                  location.pathname.startsWith('/services') ? 'text-blue-600' : 'text-slate-600'
+                }`}
+              >
+                <span>Services</span>
+                <ChevronDown size={14} className={`transition-transform ${isServicesOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isServicesOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  {servicesLinks.map((service) => (
+                    <Link
+                      key={service.name}
+                      to={service.path}
+                      onClick={() => setIsServicesOpen(false)}
+                      className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50 ${
+                        location.pathname === service.path ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
+                      }`}
+                    >
+                      {service.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {otherLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
+                  isActive(link.path) ? 'text-blue-600' : 'text-slate-600'
                 }`}
               >
                 {link.name}
@@ -77,7 +177,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Toggle */}
-          <button className="md:hidden p-2" onClick={() => setIsOpen(!isOpen)}>
+          <button className="md:hidden p-2 text-slate-900" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X /> : <Menu />}
           </button>
         </div>
@@ -85,12 +185,37 @@ const Navbar = () => {
 
       {/* Mobile Nav */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b p-4 space-y-4 shadow-xl">
+        <div className="md:hidden bg-white border-b p-4 space-y-2 shadow-xl overflow-y-auto max-h-[80vh]">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
-              className="block text-lg font-medium text-slate-700"
+              className="block px-3 py-2 text-lg font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+              onClick={() => setIsOpen(false)}
+            >
+              {link.name}
+            </Link>
+          ))}
+          
+          <div className="px-3 py-2">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Our Services</p>
+            {servicesLinks.map((service) => (
+              <Link
+                key={service.name}
+                to={service.path}
+                className="block py-2 pl-4 text-base font-medium text-slate-600 hover:text-blue-600"
+                onClick={() => setIsOpen(false)}
+              >
+                {service.name}
+              </Link>
+            ))}
+          </div>
+
+          {otherLinks.map((link) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              className="block px-3 py-2 text-lg font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
               onClick={() => setIsOpen(false)}
             >
               {link.name}
@@ -98,7 +223,7 @@ const Navbar = () => {
           ))}
           <Link
             to="/contact"
-            className="block bg-blue-600 text-white px-5 py-3 rounded-lg font-bold text-center"
+            className="block bg-blue-600 text-white px-5 py-3 mt-4 rounded-lg font-bold text-center"
             onClick={() => setIsOpen(false)}
           >
             Get Free Audit
@@ -137,10 +262,13 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6">Services</h4>
             <ul className="space-y-4 text-slate-400">
-              <li><Link to="/services" className="hover:text-blue-400 transition-colors">SEO Services</Link></li>
-              <li><Link to="/services" className="hover:text-blue-400 transition-colors">PPC Management</Link></li>
-              <li><Link to="/services" className="hover:text-blue-400 transition-colors">Social Media Marketing</Link></li>
-              <li><Link to="/services" className="hover:text-blue-400 transition-colors">Web Development</Link></li>
+              {SERVICES.map((service) => (
+                <li key={service.id}>
+                  <Link to={getServicePath(service.id)} className="hover:text-blue-400 transition-colors">
+                    {getServiceMenuName(service.id)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -149,7 +277,7 @@ const Footer = () => {
             <ul className="space-y-4 text-slate-400">
               <li><Link to="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li>
               <li><Link to="/case-studies" className="hover:text-blue-400 transition-colors">Case Studies</Link></li>
-              <li><Link to="/blog" className="hover:text-blue-400 transition-colors">Resources</Link></li>
+              <li><Link to="/resources" className="hover:text-blue-400 transition-colors">Resources</Link></li>
               <li><Link to="/contact" className="hover:text-blue-400 transition-colors">Contact</Link></li>
             </ul>
           </div>
@@ -206,8 +334,12 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/services/seo" element={<SEOService />} />
+            <Route path="/services/ppc" element={<PPCService />} />
+            <Route path="/services/social-media" element={<SMMService />} />
+            <Route path="/services/web-development" element={<WebDevService />} />
             <Route path="/case-studies" element={<CaseStudies />} />
-            <Route path="/blog" element={<Blog />} />
+            <Route path="/resources" element={<Blog />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>

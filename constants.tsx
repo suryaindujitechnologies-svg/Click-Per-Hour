@@ -116,5 +116,55 @@ export const BLOG_POSTS: BlogPost[] = [
     date: 'Oct 10, 2024',
     readTime: '8 min read',
     image: 'https://picsum.photos/seed/blog2/800/400'
+  },
+  {
+    id: '3',
+    title: 'The Future of Content Marketing: AI Integration',
+    excerpt: 'How artificial intelligence is reshaping the way we create and distribute digital content.',
+    category: 'Content',
+    author: 'Vikram Roy',
+    date: 'Oct 08, 2024',
+    readTime: '6 min read',
+    image: 'https://picsum.photos/seed/blog3/800/400'
+  },
+  {
+    id: '4',
+    title: 'Maximizing Instagram Reels for B2B Engagement',
+    excerpt: 'Think Reels are just for Gen Z? Learn how professional services are landing clients via short-form video.',
+    category: 'SMM',
+    author: 'Ananya Bose',
+    date: 'Oct 05, 2024',
+    readTime: '4 min read',
+    image: 'https://picsum.photos/seed/blog4/800/400'
+  },
+  {
+    id: '5',
+    title: 'Technical Web Performance: Core Web Vitals Explained',
+    excerpt: 'Why LCP, FID, and CLS are the most important metrics for your website\'s health and SEO.',
+    category: 'Web Dev',
+    author: 'Rahul Chatterjee',
+    date: 'Oct 02, 2024',
+    readTime: '10 min read',
+    image: 'https://picsum.photos/seed/blog5/800/400'
+  },
+  {
+    id: '6',
+    title: 'Building a Lead Generation Machine on LinkedIn',
+    excerpt: 'Practical strategies for optimizing your LinkedIn profile and content to drive high-ticket sales.',
+    category: 'SMM',
+    author: 'Priya Sen',
+    date: 'Sep 28, 2024',
+    readTime: '7 min read',
+    image: 'https://picsum.photos/seed/blog6/800/400'
+  },
+  {
+    id: '7',
+    title: 'Email Marketing Secrets for High Conversion Rates',
+    excerpt: 'From subject lines to segmenting, discover how to keep your open rates high and churn low.',
+    category: 'Email',
+    author: 'Amit Das',
+    date: 'Sep 25, 2024',
+    readTime: '9 min read',
+    image: 'https://picsum.photos/seed/blog7/800/400'
   }
 ];

@@ -1,14 +1,30 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BLOG_POSTS } from '../constants';
-import { Search, Calendar, User, Clock, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { 
+  Search, 
+  Calendar, 
+  User, 
+  Clock, 
+  ChevronRight, 
+  ChevronLeft,
+  Sparkles, 
+  Loader2,
+  Linkedin,
+  Twitter,
+  Facebook,
+  Share2
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
+
+const POSTS_PER_PAGE = 3;
 
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchAiSuggestions = useCallback(async (query: string) => {
     setIsAiLoading(true);
@@ -34,7 +50,6 @@ const Blog = () => {
       setSuggestions(result);
     } catch (error) {
       console.error('Error fetching AI suggestions:', error);
-      // Fallback suggestions
       setSuggestions([
         "Kolkata Local SEO Trends for 2025",
         "How to scale an E-commerce brand in West Bengal",
@@ -45,13 +60,57 @@ const Blog = () => {
     }
   }, []);
 
-  // Debounce search and trigger AI suggestions
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchAiSuggestions(searchQuery);
     }, 800);
     return () => clearTimeout(timer);
   }, [searchQuery, fetchAiSuggestions]);
+
+  // Reset to first page when searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const shareContent = (platform: 'linkedin' | 'twitter' | 'facebook', title: string) => {
+    // Avoid sharing the internal blob URL which will fail cross-origin checks
+    const siteUrl = 'https://clickperhour.com'; 
+    const text = encodeURIComponent(title);
+    const encodedUrl = encodeURIComponent(siteUrl);
+
+    let shareUrl = '';
+    switch (platform) {
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${text}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+    }
+    window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const filteredPosts = useMemo(() => {
+    return BLOG_POSTS.filter(post => 
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const displayedPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filteredPosts.slice(start, start + POSTS_PER_PAGE);
+  }, [filteredPosts, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="pt-24 pb-20">
@@ -76,7 +135,6 @@ const Blog = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
               </div>
 
-              {/* AI Suggestions Box */}
               <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
                 <div className="flex items-center space-x-2 mb-3 text-blue-600">
                   <Sparkles size={16} className="animate-pulse" />
@@ -106,39 +164,87 @@ const Blog = () => {
 
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Featured Post */}
-          <div className="mb-20">
-            <div className="relative group overflow-hidden rounded-[2.5rem] bg-slate-900 aspect-[21/9]">
-               <img src="https://picsum.photos/seed/featured/1200/600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt="Featured Post" />
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
-               <div className="absolute bottom-0 p-8 md:p-16 space-y-4 max-w-3xl">
-                  <span className="px-4 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-widest">Featured Article</span>
-                  <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">Mastering Digital Marketing in the Post-AI Era: What Every Kolkata Business Needs to Know</h2>
-                  <div className="flex items-center space-x-6 text-slate-300 text-sm">
-                     <span className="flex items-center"><User size={14} className="mr-2" /> Amit Das</span>
-                     <span className="flex items-center"><Calendar size={14} className="mr-2" /> Oct 15, 2024</span>
-                     <span className="flex items-center"><Clock size={14} className="mr-2" /> 12 min read</span>
-                  </div>
-                  <Link to="/blog" className="inline-flex items-center space-x-2 text-white font-bold bg-blue-600/50 hover:bg-blue-600 px-6 py-3 rounded-xl backdrop-blur-md transition-all">
-                     <span>Read Article</span>
-                     <ChevronRight size={18} />
-                  </Link>
-               </div>
+          {/* Featured Post - Only show on page 1 and when no search query is active */}
+          {currentPage === 1 && searchQuery === '' && (
+            <div className="mb-20">
+              <div className="relative group overflow-hidden rounded-[2.5rem] bg-slate-900 aspect-[21/9]">
+                <img src="https://picsum.photos/seed/featured/1200/600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt="Featured Post" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
+                <div className="absolute bottom-0 p-8 md:p-16 space-y-4 max-w-3xl">
+                    <span className="px-4 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-widest">Featured Article</span>
+                    <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">Mastering Digital Marketing in the Post-AI Era: What Every Kolkata Business Needs to Know</h2>
+                    
+                    <div className="flex flex-wrap items-center gap-6 text-slate-300 text-sm">
+                      <span className="flex items-center"><User size={14} className="mr-2" /> Amit Das</span>
+                      <span className="flex items-center"><Calendar size={14} className="mr-2" /> Oct 15, 2024</span>
+                      <span className="flex items-center"><Clock size={14} className="mr-2" /> 12 min read</span>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2">
+                      <button className="inline-flex items-center space-x-2 text-white font-bold bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl transition-all shadow-lg">
+                        <span>Read Article</span>
+                        <ChevronRight size={18} />
+                      </button>
+                      
+                      <div className="flex items-center space-x-3 p-1 rounded-xl">
+                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1 uppercase tracking-tighter mr-1">
+                          <Share2 size={12} /> Share:
+                        </span>
+                        <button 
+                          onClick={() => shareContent('linkedin', 'Mastering Digital Marketing in the Post-AI Era')}
+                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-600 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+                          aria-label="Share on LinkedIn"
+                        >
+                          <Linkedin size={18} />
+                        </button>
+                        <button 
+                          onClick={() => shareContent('twitter', 'Mastering Digital Marketing in the Post-AI Era')}
+                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-slate-900 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+                          aria-label="Share on Twitter"
+                        >
+                          <Twitter size={18} />
+                        </button>
+                        <button 
+                          onClick={() => shareContent('facebook', 'Mastering Digital Marketing in the Post-AI Era')}
+                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-800 flex items-center justify-center text-white transition-all backdrop-blur-sm"
+                          aria-label="Share on Facebook"
+                        >
+                          <Facebook size={18} />
+                        </button>
+                      </div>
+                    </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-            {BLOG_POSTS
-              .filter(post => 
-                post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-              )
-              .map((post) => (
-              <article key={post.id} className="group space-y-6">
-                <div className="aspect-[16/10] rounded-3xl overflow-hidden shadow-lg border border-slate-100">
+            {displayedPosts.map((post) => (
+              <article key={post.id} className="group space-y-6 flex flex-col h-full">
+                <div className="aspect-[16/10] rounded-3xl overflow-hidden shadow-lg border border-slate-100 relative">
                    <img src={post.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={post.title} />
+                   <div className="absolute top-4 right-4 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={(e) => { e.preventDefault(); shareContent('linkedin', post.title); }}
+                        className="w-8 h-8 rounded-full bg-white text-blue-600 shadow-md flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+                      >
+                        <Linkedin size={14} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.preventDefault(); shareContent('twitter', post.title); }}
+                        className="w-8 h-8 rounded-full bg-white text-slate-900 shadow-md flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all"
+                      >
+                        <Twitter size={14} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.preventDefault(); shareContent('facebook', post.title); }}
+                        className="w-8 h-8 rounded-full bg-white text-blue-800 shadow-md flex items-center justify-center hover:bg-blue-800 hover:text-white transition-all"
+                      >
+                        <Facebook size={14} />
+                      </button>
+                   </div>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-4 flex flex-col flex-grow">
                    <div className="flex items-center justify-between">
                       <span className="text-blue-600 font-bold text-xs uppercase tracking-widest">{post.category}</span>
                       <span className="text-slate-400 text-xs flex items-center"><Clock size={12} className="mr-1" /> {post.readTime}</span>
@@ -149,19 +255,33 @@ const Blog = () => {
                    <p className="text-slate-600 leading-relaxed line-clamp-2">
                       {post.excerpt}
                    </p>
-                   <div className="pt-2">
-                      <Link to="/blog" className="flex items-center space-x-1 font-bold text-slate-900">
+                   <div className="pt-4 mt-auto flex items-center justify-between border-t border-slate-50">
+                      <button className="flex items-center space-x-1 font-bold text-slate-900 hover:text-blue-600 transition-colors">
                          <span>Read More</span>
                          <ChevronRight size={16} className="text-blue-600" />
-                      </Link>
+                      </button>
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => shareContent('twitter', post.title)}
+                          className="text-slate-400 hover:text-blue-400 transition-colors"
+                          aria-label="Quick share on Twitter"
+                        >
+                          <Twitter size={14} />
+                        </button>
+                        <button 
+                          onClick={() => shareContent('linkedin', post.title)}
+                          className="text-slate-400 hover:text-blue-600 transition-colors"
+                          aria-label="Quick share on LinkedIn"
+                        >
+                          <Linkedin size={14} />
+                        </button>
+                      </div>
                    </div>
                 </div>
               </article>
             ))}
-            {BLOG_POSTS.filter(post => 
-              post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-              post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-            ).length === 0 && (
+            
+            {filteredPosts.length === 0 && (
               <div className="col-span-full py-20 text-center space-y-4">
                 <p className="text-slate-500 text-lg italic">No articles match your search yet. Try one of our AI-suggested topics above!</p>
               </div>
@@ -169,12 +289,41 @@ const Blog = () => {
           </div>
 
           {/* Pagination */}
-          <div className="mt-20 flex justify-center space-x-2">
-             <button className="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center">1</button>
-             <button className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center">2</button>
-             <button className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center">3</button>
-             <button className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all flex items-center justify-center"><ChevronRight size={20} /></button>
-          </div>
+          {totalPages > 1 && (
+            <div className="mt-20 flex justify-center items-center space-x-2">
+              <button 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button 
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`w-12 h-12 rounded-xl font-bold transition-all flex items-center justify-center ${
+                    currentPage === page 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                aria-label="Next page"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
