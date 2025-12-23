@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Share2, Users, Heart, MessageSquare, CheckCircle, ArrowRight, Instagram, Twitter, Linkedin, Facebook } from 'lucide-react';
+import { Share2, Users, Heart, MessageSquare, ArrowRight, Instagram, Linkedin, Facebook } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SMMService = () => {
@@ -46,7 +46,9 @@ const SMMService = () => {
                       <p className="text-xs text-slate-500">Hyper-targeting</p>
                    </div>
                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center text-center">
-                      <div className="p-4 bg-slate-100 text-slate-900 rounded-2xl mb-4"><Twitter /></div>
+                      <div className="p-4 bg-slate-100 text-slate-900 rounded-2xl mb-4">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                      </div>
                       <h4 className="font-bold">Twitter (X)</h4>
                       <p className="text-xs text-slate-500">Real-time engagement</p>
                    </div>
@@ -71,7 +73,7 @@ const SMMService = () => {
                      </div>
                    ))}
                 </div>
-                <Link to="/contact" className="inline-flex items-center space-x-2 bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all">
+                <Link to="/contact-us" className="inline-flex items-center space-x-2 bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all">
                    <span>Start Your Campaign</span>
                    <ArrowRight size={20} />
                 </Link>

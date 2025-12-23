@@ -9,9 +9,6 @@ import {
   MapPin, 
   ArrowRight, 
   MessageCircle,
-  TrendingUp,
-  Award,
-  Users,
   Search,
   ChevronDown
 } from 'lucide-react';
@@ -25,6 +22,7 @@ import About from './pages/About';
 import Services from './pages/Services';
 import CaseStudies from './pages/CaseStudies';
 import Blog from './pages/Blog';
+import BlogPostDetail from './pages/BlogPostDetail';
 import Contact from './pages/Contact';
 
 // Dedicated Service Pages
@@ -33,27 +31,38 @@ import PPCService from './pages/services/PPC';
 import SMMService from './pages/services/SMM';
 import WebDevService from './pages/services/WebDev';
 
+// Scroll to top on navigation
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 // Helper to get consistent service paths
-const getServicePath = (id: string) => {
+export const getServicePath = (id: string) => {
   const slugMap: Record<string, string> = {
-    'smm': 'social-media',
-    'web-dev': 'web-development'
+    'seo': 'seo-services',
+    'ppc': 'ppc-management',
+    'smm': 'social-media-marketing',
+    'web-dev': 'web-design-development'
   };
   return `/services/${slugMap[id] || id}`;
 };
 
-// Helper to get shorter menu names from full service titles
-const getServiceMenuName = (id: string) => {
+// Helper to get exact menu labels
+export const getServiceMenuLabel = (id: string) => {
   const nameMap: Record<string, string> = {
     'seo': 'SEO Services',
     'ppc': 'PPC Management',
     'smm': 'Social Media Marketing',
-    'web-dev': 'Web Development'
+    'web-dev': 'Web Design & Development'
   };
   return nameMap[id] || id;
 };
 
-// Components
+// Navbar Component
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
@@ -79,34 +88,33 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'About Us', path: '/about' },
+    { name: 'About Us', path: '/about-us' },
   ];
 
-  // Dynamically generated service links
   const servicesLinks = [
     { name: 'All Services', path: '/services' },
     ...SERVICES.map(service => ({
-      name: getServiceMenuName(service.id),
+      name: getServiceMenuLabel(service.id),
       path: getServicePath(service.id)
     }))
   ];
 
   const otherLinks = [
     { name: 'Case Studies', path: '/case-studies' },
-    { name: 'Resources', path: '/resources' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'Knowledge Center', path: '/knowledge-center' },
+    { name: 'Contact Us', path: '/contact-us' },
   ];
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname !== '/') return false;
-    return location.pathname.startsWith(path);
+    return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">C</div>
             <span className="text-2xl font-extrabold tracking-tight text-slate-900">
               Click<span className="text-blue-600">Per</span>Hour
@@ -169,7 +177,7 @@ const Navbar = () => {
               </Link>
             ))}
             <Link
-              to="/contact"
+              to="/contact-us"
               className="bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
             >
               Get Free Audit
@@ -190,7 +198,7 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className="block px-3 py-2 text-lg font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+              className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
               onClick={() => setIsOpen(false)}
             >
               {link.name}
@@ -203,7 +211,7 @@ const Navbar = () => {
               <Link
                 key={service.name}
                 to={service.path}
-                className="block py-2 pl-4 text-base font-medium text-slate-600 hover:text-blue-600"
+                className={`block py-2 pl-4 text-base font-medium ${location.pathname === service.path ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}
                 onClick={() => setIsOpen(false)}
               >
                 {service.name}
@@ -215,14 +223,14 @@ const Navbar = () => {
             <Link
               key={link.name}
               to={link.path}
-              className="block px-3 py-2 text-lg font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
+              className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
               onClick={() => setIsOpen(false)}
             >
               {link.name}
             </Link>
           ))}
           <Link
-            to="/contact"
+            to="/contact-us"
             className="block bg-blue-600 text-white px-5 py-3 mt-4 rounded-lg font-bold text-center"
             onClick={() => setIsOpen(false)}
           >
@@ -234,27 +242,28 @@ const Navbar = () => {
   );
 };
 
+// Footer Component
 const Footer = () => {
   return (
     <footer className="bg-slate-900 text-white pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           <div className="space-y-6">
-            <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">C</div>
               <span className="text-2xl font-extrabold tracking-tight">
                 Click<span className="text-blue-600">Per</span>Hour
               </span>
-            </div>
+            </Link>
             <p className="text-slate-400 leading-relaxed">
               Empowering businesses in Kolkata and across the globe with ROI-focused digital marketing strategies. We turn clicks into loyal customers.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition-colors">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition-colors">
                 <Search size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition-colors">
-                <Users size={18} />
+              <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 hover:bg-blue-600 hover:text-white transition-colors">
+                <MessageCircle size={18} />
               </a>
             </div>
           </div>
@@ -262,10 +271,11 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6">Services</h4>
             <ul className="space-y-4 text-slate-400">
+              <li><Link to="/services" className="hover:text-blue-400 transition-colors">All Services</Link></li>
               {SERVICES.map((service) => (
                 <li key={service.id}>
                   <Link to={getServicePath(service.id)} className="hover:text-blue-400 transition-colors">
-                    {getServiceMenuName(service.id)}
+                    {getServiceMenuLabel(service.id)}
                   </Link>
                 </li>
               ))}
@@ -275,10 +285,10 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-bold mb-6">Company</h4>
             <ul className="space-y-4 text-slate-400">
-              <li><Link to="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li>
+              <li><Link to="/about-us" className="hover:text-blue-400 transition-colors">About Us</Link></li>
               <li><Link to="/case-studies" className="hover:text-blue-400 transition-colors">Case Studies</Link></li>
-              <li><Link to="/resources" className="hover:text-blue-400 transition-colors">Resources</Link></li>
-              <li><Link to="/contact" className="hover:text-blue-400 transition-colors">Contact</Link></li>
+              <li><Link to="/knowledge-center" className="hover:text-blue-400 transition-colors">Knowledge Center</Link></li>
+              <li><Link to="/contact-us" className="hover:text-blue-400 transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
@@ -291,11 +301,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="text-blue-500 shrink-0" size={18} />
-                <span>+91 98765 43210</span>
+                <a href="tel:+919876543210" className="hover:text-blue-400 transition-colors">+91 98765 43210</a>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="text-blue-500 shrink-0" size={18} />
-                <span>hello@clickperhour.com</span>
+                <a href="mailto:hello@clickperhour.com" className="hover:text-blue-400 transition-colors">hello@clickperhour.com</a>
               </li>
             </ul>
           </div>
@@ -324,23 +334,26 @@ const Footer = () => {
   );
 };
 
+// Main App Component
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/about-us" element={<About />} />
             <Route path="/services" element={<Services />} />
-            <Route path="/services/seo" element={<SEOService />} />
-            <Route path="/services/ppc" element={<PPCService />} />
-            <Route path="/services/social-media" element={<SMMService />} />
-            <Route path="/services/web-development" element={<WebDevService />} />
+            <Route path="/services/seo-services" element={<SEOService />} />
+            <Route path="/services/ppc-management" element={<PPCService />} />
+            <Route path="/services/social-media-marketing" element={<SMMService />} />
+            <Route path="/services/web-design-development" element={<WebDevService />} />
             <Route path="/case-studies" element={<CaseStudies />} />
-            <Route path="/resources" element={<Blog />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/knowledge-center" element={<Blog />} />
+            <Route path="/knowledge-center/:id" element={<BlogPostDetail />} />
+            <Route path="/contact-us" element={<Contact />} />
           </Routes>
         </main>
         <Footer />

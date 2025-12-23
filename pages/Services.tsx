@@ -87,7 +87,7 @@ const Services = () => {
                   </div>
 
                   <div className="pt-4">
-                    <Link to="/contact" className="inline-flex items-center bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+                    <Link to="/contact-us" className="inline-flex items-center bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
                       Get a Quote for {service.title} <ArrowRight className="ml-2" size={20} />
                     </Link>
                   </div>
@@ -101,7 +101,6 @@ const Services = () => {
                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" 
                      />
                   </div>
-                  {/* Decorative blobs */}
                   <div className={`absolute -z-10 w-64 h-64 bg-blue-200 rounded-full blur-3xl opacity-50 ${isEven ? '-top-10 -right-10' : '-bottom-10 -left-10'}`}></div>
                 </div>
               </div>
@@ -135,7 +134,7 @@ const Services = () => {
                    </ul>
                 </div>
                 <div className="flex justify-center lg:justify-end">
-                   <Link to="/contact" className="bg-white text-blue-600 px-10 py-5 rounded-full font-black text-xl hover:bg-slate-100 transition-all shadow-2xl">
+                   <Link to="/contact-us" className="bg-white text-blue-600 px-10 py-5 rounded-full font-black text-xl hover:bg-slate-100 transition-all shadow-2xl">
                       Grow Your Local Reach
                    </Link>
                 </div>
@@ -147,7 +146,6 @@ const Services = () => {
   );
 };
 
-// Internal icon for consistency
 const Globe = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
 );

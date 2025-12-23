@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MousePointer2, Target, BarChart, Zap, CheckCircle, ArrowRight } from 'lucide-react';
+import { MousePointer2, Target, BarChart, Zap, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const PPCService = () => {
@@ -22,7 +22,7 @@ const PPCService = () => {
                 Don't waste budget on "clicks". Our PPC management focuses on high-intent lead generation and sales conversion for Indian enterprises.
               </p>
               <div className="flex gap-4">
-                <Link to="/contact" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
+                <Link to="/contact-us" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
                   Scale Your Ads Now
                 </Link>
               </div>
@@ -74,7 +74,7 @@ const PPCService = () => {
               </div>
               <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20">
                  <h3 className="text-2xl font-bold mb-4 text-center">Ready to see your real ROI?</h3>
-                 <Link to="/contact" className="block w-full text-center bg-white text-blue-600 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all">
+                 <Link to="/contact-us" className="block w-full text-center bg-white text-blue-600 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all">
                     Request Free Proposal
                  </Link>
               </div>

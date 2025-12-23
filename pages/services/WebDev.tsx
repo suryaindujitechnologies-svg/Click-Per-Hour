@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Code, Smartphone, Rocket, ShieldCheck, CheckCircle, ArrowRight, Layout, Cpu } from 'lucide-react';
+import { Code, Smartphone, Rocket, ArrowRight, Layout, Cpu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const WebDevService = () => {
@@ -21,7 +21,7 @@ const WebDevService = () => {
               <p className="text-xl text-slate-600 leading-relaxed max-w-xl">
                 A website isn't a digital brochure; it's your #1 salesperson. We build lightning-fast, secure, and conversion-optimized sites for the modern web.
               </p>
-              <Link to="/contact" className="inline-flex items-center bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
+              <Link to="/contact-us" className="inline-flex items-center bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
                 Start Your Project <ArrowRight className="ml-2" />
               </Link>
             </div>
@@ -83,7 +83,7 @@ const WebDevService = () => {
                   <div className="bg-blue-600 flex items-center justify-center p-20 text-center">
                      <div className="space-y-6">
                         <p className="text-4xl font-black text-white">Ready for a better website?</p>
-                        <Link to="/contact" className="inline-block bg-slate-900 text-white px-10 py-5 rounded-full font-black text-xl hover:bg-slate-800 transition-all shadow-2xl">
+                        <Link to="/contact-us" className="inline-block bg-slate-900 text-white px-10 py-5 rounded-full font-black text-xl hover:bg-slate-800 transition-all shadow-2xl">
                            Launch Your Site
                         </Link>
                      </div>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, TrendingUp, CheckCircle, ArrowRight, Shield, Globe, MapPin } from 'lucide-react';
+import { Search, TrendingUp, CheckCircle, Shield, Globe, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SEOService = () => {
@@ -23,7 +23,7 @@ const SEOService = () => {
                 We don't just optimize for search engines; we optimize for humans and ROI. Our data-driven SEO strategies help Kolkata businesses rank where it matters most.
               </p>
               <div className="flex gap-4">
-                <Link to="/contact" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
+                <Link to="/contact-us" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
                   Get Free SEO Audit
                 </Link>
               </div>

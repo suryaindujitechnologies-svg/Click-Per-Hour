@@ -67,13 +67,11 @@ const Blog = () => {
     return () => clearTimeout(timer);
   }, [searchQuery, fetchAiSuggestions]);
 
-  // Reset to first page when searching
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
   const shareContent = (platform: 'linkedin' | 'twitter' | 'facebook', title: string) => {
-    // Avoid sharing the internal blob URL which will fail cross-origin checks
     const siteUrl = 'https://clickperhour.com'; 
     const text = encodeURIComponent(title);
     const encodedUrl = encodeURIComponent(siteUrl);
@@ -164,7 +162,6 @@ const Blog = () => {
 
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Featured Post - Only show on page 1 and when no search query is active */}
           {currentPage === 1 && searchQuery === '' && (
             <div className="mb-20">
               <div className="relative group overflow-hidden rounded-[2.5rem] bg-slate-900 aspect-[21/9]">
@@ -181,10 +178,10 @@ const Blog = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2">
-                      <button className="inline-flex items-center space-x-2 text-white font-bold bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl transition-all shadow-lg">
+                      <Link to="/knowledge-center/1" className="inline-flex items-center space-x-2 text-white font-bold bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl transition-all shadow-lg">
                         <span>Read Article</span>
                         <ChevronRight size={18} />
-                      </button>
+                      </Link>
                       
                       <div className="flex items-center space-x-3 p-1 rounded-xl">
                         <span className="text-xs font-bold text-slate-400 flex items-center gap-1 uppercase tracking-tighter mr-1">
@@ -221,7 +218,7 @@ const Blog = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {displayedPosts.map((post) => (
               <article key={post.id} className="group space-y-6 flex flex-col h-full">
-                <div className="aspect-[16/10] rounded-3xl overflow-hidden shadow-lg border border-slate-100 relative">
+                <Link to={`/knowledge-center/${post.id}`} className="block aspect-[16/10] rounded-3xl overflow-hidden shadow-lg border border-slate-100 relative">
                    <img src={post.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={post.title} />
                    <div className="absolute top-4 right-4 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
@@ -243,23 +240,25 @@ const Blog = () => {
                         <Facebook size={14} />
                       </button>
                    </div>
-                </div>
+                </Link>
                 <div className="space-y-4 flex flex-col flex-grow">
                    <div className="flex items-center justify-between">
                       <span className="text-blue-600 font-bold text-xs uppercase tracking-widest">{post.category}</span>
                       <span className="text-slate-400 text-xs flex items-center"><Clock size={12} className="mr-1" /> {post.readTime}</span>
                    </div>
-                   <h3 className="text-2xl font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
-                      {post.title}
-                   </h3>
+                   <Link to={`/knowledge-center/${post.id}`}>
+                     <h3 className="text-2xl font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
+                        {post.title}
+                     </h3>
+                   </Link>
                    <p className="text-slate-600 leading-relaxed line-clamp-2">
                       {post.excerpt}
                    </p>
                    <div className="pt-4 mt-auto flex items-center justify-between border-t border-slate-50">
-                      <button className="flex items-center space-x-1 font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                      <Link to={`/knowledge-center/${post.id}`} className="flex items-center space-x-1 font-bold text-slate-900 hover:text-blue-600 transition-colors">
                          <span>Read More</span>
                          <ChevronRight size={16} className="text-blue-600" />
-                      </button>
+                      </Link>
                       <div className="flex items-center space-x-2">
                         <button 
                           onClick={() => shareContent('twitter', post.title)}
@@ -288,7 +287,6 @@ const Blog = () => {
             )}
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-20 flex justify-center items-center space-x-2">
               <button 
@@ -327,7 +325,6 @@ const Blog = () => {
         </div>
       </section>
 
-      {/* Newsletter */}
       <section className="py-24 bg-slate-900">
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[3rem] p-12 md:p-20 text-center space-y-8">

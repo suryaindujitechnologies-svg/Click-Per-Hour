@@ -3,20 +3,19 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ArrowRight, 
-  CheckCircle2, 
   TrendingUp, 
   Target, 
   Zap, 
-  Users,
   Search,
   MousePointer2,
   Share2,
   Code,
-  // Added missing icon imports
   MapPin,
-  Phone
+  Phone,
+  BarChart3
 } from 'lucide-react';
 import { SERVICES, TESTIMONIALS } from '../constants';
+import { getServicePath } from '../App';
 
 const Home = () => {
   return (
@@ -42,7 +41,7 @@ const Home = () => {
                 Click Per Hour is a data-driven digital marketing agency in Kolkata. We don't just sell services; we engineer growth through SEO, PPC, and high-performance creative strategies.
               </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link to="/contact" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center shadow-xl shadow-blue-200">
+                <Link to="/contact-us" className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition-all flex items-center justify-center shadow-xl shadow-blue-200">
                   Book Free Strategy Call <ArrowRight className="ml-2" size={20} />
                 </Link>
                 <Link to="/services" className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center">
@@ -78,7 +77,6 @@ const Home = () => {
                     </div>
                  </div>
               </div>
-              {/* Background Decorative Element */}
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse"></div>
             </div>
           </div>
@@ -106,7 +104,7 @@ const Home = () => {
                   </div>
                   <h4 className="text-xl font-bold mb-4 text-slate-900">{service.title}</h4>
                   <p className="text-slate-600 mb-6 line-clamp-3">{service.shortDescription}</p>
-                  <Link to="/services" className="text-blue-600 font-bold flex items-center group-hover:underline">
+                  <Link to={getServicePath(service.id)} className="text-blue-600 font-bold flex items-center group-hover:underline">
                     Learn More <ArrowRight className="ml-2" size={16} />
                   </Link>
                 </div>
@@ -136,7 +134,7 @@ const Home = () => {
                   </div>
                 ))}
               </div>
-              <Link to="/contact" className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all">
+              <Link to="/contact-us" className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all">
                 Partner With Us Today
               </Link>
             </div>
@@ -199,7 +197,7 @@ const Home = () => {
             <h2 className="text-4xl md:text-6xl font-extrabold max-w-4xl mx-auto">Ready to Stop Guessing and Start Growing?</h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">Join hundreds of businesses in India that trust Click Per Hour for their digital dominance.</p>
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <Link to="/contact" className="bg-white text-blue-600 px-10 py-5 rounded-full font-black text-xl hover:bg-slate-100 transition-all shadow-xl">
+              <Link to="/contact-us" className="bg-white text-blue-600 px-10 py-5 rounded-full font-black text-xl hover:bg-slate-100 transition-all shadow-xl">
                 Get My Free Audit
               </Link>
               <a href="tel:+919876543210" className="flex items-center space-x-2 text-white font-bold text-xl hover:text-blue-100">
@@ -212,10 +210,5 @@ const Home = () => {
     </div>
   );
 };
-
-// Internal components for clean code
-const BarChart3 = ({ size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-);
 
 export default Home;
