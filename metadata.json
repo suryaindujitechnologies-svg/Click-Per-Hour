@@ -1,0 +1,7 @@
+{
+  "name": "Click Per Hour - Digital Marketing Excellence",
+  "description": "A high-performance, SEO-optimized website for Click Per Hour, a leading digital marketing agency based in Kolkata, specializing in ROI-driven growth strategies.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
