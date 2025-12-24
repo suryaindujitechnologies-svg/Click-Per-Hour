@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
@@ -14,6 +13,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { BLOG_POSTS } from '../constants';
+import SEO from '../components/SEO';
 
 const BlogPostDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,6 +75,13 @@ const BlogPostDetail = () => {
 
   return (
     <div className="pt-24 pb-20">
+      <SEO 
+        title={post.title} 
+        description={post.excerpt} 
+        image={post.image}
+        type="article"
+      />
+      
       {/* Hero Header */}
       <section className="relative py-20 bg-slate-900 text-white overflow-hidden">
         <img 

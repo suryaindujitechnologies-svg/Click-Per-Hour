@@ -18,11 +18,14 @@ import {
   Lightbulb,
   TrendingUp,
   RefreshCw,
-  // Added missing ArrowRight import
-  ArrowRight
+  ArrowRight,
+  Zap,
+  MousePointer2,
+  Gem
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
+import SEO from '../components/SEO';
 
 const POSTS_PER_PAGE = 3;
 
@@ -34,64 +37,47 @@ interface AiContentIdea {
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // New state for Trend Analysis
+  // AI Content Lab State
   const [aiIdeas, setAiIdeas] = useState<AiContentIdea[]>([]);
   const [isTrendsLoading, setIsTrendsLoading] = useState(false);
+  const [niche, setNiche] = useState('E-commerce');
+
+  // Fix: Added handlePageChange function for pagination control
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Fix: Reset to first page when search or category filter changes to prevent empty views
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   const categories = useMemo(() => {
     const cats = new Set(BLOG_POSTS.map(post => post.category));
     return ['All', ...Array.from(cats)].sort();
   }, []);
 
-  const fetchAiSuggestions = useCallback(async (query: string) => {
-    setIsAiLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = query 
-        ? `Based on the search query "${query}", suggest 3 trending blog post titles for a digital marketing agency in Kolkata. Focus on SEO, PPC, or Social Media. Return as a JSON array of strings.`
-        : `Suggest 3 trending digital marketing blog topics specifically for small businesses and startups in Kolkata, India for 2025. Return as a JSON array of strings.`;
+  const niches = ['E-commerce', 'Real Estate', 'Local Services', 'Healthcare', 'B2B SaaS'];
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          },
-        },
-      });
-
-      const result = JSON.parse(response.text || '[]');
-      setSuggestions(result);
-    } catch (error) {
-      console.error('Error fetching AI suggestions:', error);
-      setSuggestions([
-        "Kolkata Local SEO Trends for 2025",
-        "How to scale an E-commerce brand in West Bengal",
-        "Optimizing Google Ads for Indian festive seasons"
-      ]);
-    } finally {
-      setIsAiLoading(false);
-    }
-  }, []);
-
-  const fetchAiTrendAnalysis = useCallback(async () => {
+  const fetchAiTrendAnalysis = useCallback(async (selectedNiche: string) => {
     setIsTrendsLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Analyze current digital marketing trends specifically for the Kolkata (India) market in 2025. 
-      Generate 4 unique, engaging blog post titles and a 2-sentence outline for each that would be valuable for the 'Knowledge Center' of a digital agency. 
-      Focus on hyper-local needs, regional language trends, or emerging tech adoption in West Bengal.
-      Return as a JSON array of objects with keys 'title' and 'outline'.`;
+      // Using gemini-3-pro-preview for more strategic and complex reasoning about trends
+      const prompt = `Act as a senior Digital Marketing Strategist in Kolkata. 
+      Analyze current high-impact digital marketing trends specifically for the ${selectedNiche} industry in the Kolkata (India) market for 2025. 
+      Consider hyper-local needs, regional language preferences (Bengali-English mix), and seasonal consumer behavior (e.g., Durga Puja lead-ups, wedding seasons).
+      
+      Generate 4 unique, highly engaging blog post titles and a detailed 2-sentence outline/blueprint for each.
+      The titles should be click-worthy and SEO-optimized.
+      Return strictly as a JSON array of objects with keys 'title' and 'outline'.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3-pro-preview",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -114,8 +100,8 @@ const Blog = () => {
     } catch (error) {
       console.error('Error fetching trend analysis:', error);
       setAiIdeas([
-        { title: "The Rise of Bengali Voice Search", outline: "How local language processing is changing SEO in West Bengal. Tips for optimizing for the next 100 million Bengali users." },
-        { title: "Kolkata's E-commerce Boom: Beyond Park Street", outline: "Strategies for local retailers to compete with national giants. Focusing on hyper-local delivery and community-driven social commerce." }
+        { title: `Kolkata's ${selectedNiche} Boom: Local SEO Hacks`, outline: "A deep dive into ranking for hyper-local terms in Salt Lake and Ballygunge. Essential for growing visibility in 2025." },
+        { title: `Optimizing Ad Spend for the Kolkata Festive Season`, outline: "How to balance budget across Meta and Google during peak shopping months in West Bengal to maximize ROAS." }
       ]);
     } finally {
       setIsTrendsLoading(false);
@@ -123,22 +109,11 @@ const Blog = () => {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchAiSuggestions(searchQuery);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [searchQuery, fetchAiSuggestions]);
-
-  useEffect(() => {
-    fetchAiTrendAnalysis();
-  }, [fetchAiTrendAnalysis]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
+    fetchAiTrendAnalysis(niche);
+  }, [fetchAiTrendAnalysis, niche]);
 
   const shareContent = (platform: 'linkedin' | 'twitter' | 'facebook', title: string) => {
-    const siteUrl = 'https://clickperhour.com'; 
+    const siteUrl = window.location.origin; 
     const text = encodeURIComponent(title);
     const encodedUrl = encodeURIComponent(siteUrl);
 
@@ -161,11 +136,8 @@ const Blog = () => {
     return BLOG_POSTS.filter(post => {
       const matchesSearch = 
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.category.toLowerCase().includes(searchQuery.toLowerCase());
-      
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
-      
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory]);
@@ -176,112 +148,113 @@ const Blog = () => {
     return filteredPosts.slice(start, start + POSTS_PER_PAGE);
   }, [filteredPosts, currentPage]);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 400, behavior: 'smooth' });
-  };
-
   return (
     <div className="pt-24 pb-20">
+      <SEO 
+        title="Knowledge Center | Digital Marketing Insights" 
+        description="Explore the latest insights, trends, and strategies in digital marketing—curated specifically for the Indian business landscape by Click Per Hour."
+        image="https://picsum.photos/seed/blog-og/1200/630"
+      />
+      
+      {/* Search & Hero */}
       <section className="py-20 border-b bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row justify-between items-center gap-12">
             <div className="space-y-6 text-center lg:text-left">
-              <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900">Knowledge <span className="text-blue-600">Center</span></h1>
+              <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight">
+                Knowledge <span className="text-blue-600">Center</span>
+              </h1>
               <p className="text-xl text-slate-600 max-w-xl">
                 The latest insights, trends, and strategies in digital marketing—curated specifically for the Indian business landscape.
               </p>
             </div>
-            <div className="w-full max-w-md space-y-4">
+            <div className="w-full max-w-md">
               <div className="relative">
                 <input 
                   type="text" 
                   placeholder="Search articles..." 
-                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
               </div>
-
-              <div className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
-                <div className="flex items-center space-x-2 mb-3 text-blue-600">
-                  <Sparkles size={16} className="animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider">AI Suggested Topics</span>
-                  {isAiLoading && <Loader2 size={12} className="animate-spin ml-auto" />}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {suggestions.length > 0 ? (
-                    suggestions.map((topic, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => {
-                          setSearchQuery(topic);
-                          setSelectedCategory('All');
-                        }}
-                        className="text-[11px] font-semibold bg-slate-50 hover:bg-blue-50 hover:text-blue-600 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-100 transition-colors text-left"
-                      >
-                        {topic}
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-[11px] text-slate-400 italic">Finding the best topics for you...</p>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* AI Trend Analysis Section */}
-      <section className="py-16 bg-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-[100px] -z-10 opacity-60"></div>
+      {/* AI Content Lab Section */}
+      <section className="py-24 bg-white overflow-hidden relative border-b border-slate-100">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full blur-[120px] -z-10 opacity-30"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-blue-600">
-                <TrendingUp size={20} />
-                <span className="text-sm font-black uppercase tracking-[0.2em]">Kolkata Market Pulse</span>
+          <div className="flex flex-col lg:flex-row items-start justify-between mb-16 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-blue-600 bg-blue-50 w-fit px-4 py-1 rounded-full border border-blue-100">
+                <Gem size={16} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">CPH Content Lab</span>
               </div>
-              <h2 className="text-3xl font-extrabold text-slate-900">AI-Powered Content Strategist</h2>
-              <p className="text-slate-500 max-w-xl text-sm">Our AI analyzed local search volumes and social signals to predict the most impactful topics for your business this month.</p>
+              <h2 className="text-4xl font-extrabold text-slate-900">Market Intelligence <span className="text-blue-600">Assistant</span></h2>
+              <p className="text-slate-500 max-w-xl">Our AI analyzes regional search trends and social sentiment to suggest high-impact topics for your specific industry.</p>
             </div>
-            <button 
-              onClick={fetchAiTrendAnalysis}
-              disabled={isTrendsLoading}
-              className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-all disabled:opacity-50 shadow-lg shadow-slate-100"
-            >
-              {isTrendsLoading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-              <span>Regenerate Insights</span>
-            </button>
+
+            <div className="w-full lg:w-fit bg-slate-50 p-2 rounded-2xl border border-slate-100 flex flex-wrap gap-2">
+              {niches.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setNiche(n)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    niche === n 
+                    ? 'bg-white text-blue-600 shadow-sm border border-blue-100' 
+                    : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {isTrendsLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-64 rounded-[2rem] bg-slate-50 animate-pulse border border-slate-100"></div>
+                <div key={i} className="h-64 rounded-[2.5rem] bg-slate-50 animate-pulse border border-slate-100"></div>
               ))
             ) : (
               aiIdeas.map((idea, i) => (
-                <div key={i} className="group p-8 rounded-[2rem] bg-white border border-slate-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-50 transition-all duration-300 relative flex flex-col h-full overflow-hidden">
-                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-[3] transition-transform duration-700 -z-10"></div>
-                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <Lightbulb size={20} />
+                <div key={i} className="group p-8 rounded-[2.5rem] bg-white border border-slate-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-50 transition-all duration-500 relative flex flex-col h-full overflow-hidden">
+                  <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-600 opacity-5 rounded-full group-hover:scale-[6] transition-transform duration-1000 -z-10"></div>
+                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                    <Zap size={20} />
                   </div>
                   <h4 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">{idea.title}</h4>
-                  <p className="text-sm text-slate-500 leading-relaxed mb-6 flex-grow">{idea.outline}</p>
-                  <button className="text-xs font-bold text-slate-400 group-hover:text-blue-600 uppercase tracking-widest flex items-center">
-                    Request Draft <ArrowRight size={12} className="ml-2" />
+                  <div className="text-sm text-slate-500 leading-relaxed mb-6 flex-grow space-y-2">
+                    <p className="font-bold text-slate-400 uppercase text-[9px] tracking-widest">Strategy Blueprint</p>
+                    <p>{idea.outline}</p>
+                  </div>
+                  <button className="text-[10px] font-black text-slate-400 group-hover:text-blue-600 uppercase tracking-widest flex items-center mt-auto">
+                    Full Content Brief <ArrowRight size={12} className="ml-2 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </div>
               ))
             )}
           </div>
+          
+          <div className="mt-12 flex justify-center">
+             <button 
+              onClick={() => fetchAiTrendAnalysis(niche)}
+              disabled={isTrendsLoading}
+              className="flex items-center space-x-2 px-8 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-blue-600 transition-all disabled:opacity-50 shadow-xl shadow-slate-100"
+            >
+              {isTrendsLoading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+              <span>Refresh Predictions</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      <section className="py-12 border-b bg-white sticky top-[72px] z-30 shadow-sm shadow-slate-50">
+      {/* Filter Bar */}
+      <section className="py-8 bg-white sticky top-[72px] z-30 border-b border-slate-50 backdrop-blur-md bg-white/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center space-x-3 text-slate-900 overflow-x-auto w-full pb-2 md:pb-0 scrollbar-hide">
@@ -291,7 +264,7 @@ const Blog = () => {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
+                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
                       selectedCategory === cat 
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -302,149 +275,50 @@ const Blog = () => {
                 ))}
               </div>
             </div>
-            <div className="text-sm font-medium text-slate-400 whitespace-nowrap">
-              Showing <span className="text-slate-900 font-bold">{filteredPosts.length}</span> articles
+            <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+              <span className="text-blue-600">{filteredPosts.length}</span> Articles Found
             </div>
           </div>
         </div>
       </section>
 
+      {/* Blog Grid */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {currentPage === 1 && searchQuery === '' && selectedCategory === 'All' && (
-            <div className="mb-20">
-              <div className="relative group overflow-hidden rounded-[2.5rem] bg-slate-900 aspect-[21/9]">
-                <img src="https://picsum.photos/seed/featured/1200/600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt="Featured Post" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
-                <div className="absolute bottom-0 p-8 md:p-16 space-y-4 max-w-3xl">
-                    <span className="px-4 py-1 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-widest">Featured Article</span>
-                    <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">Mastering Digital Marketing in the Post-AI Era: What Every Kolkata Business Needs to Know</h2>
-                    
-                    <div className="flex flex-wrap items-center gap-6 text-slate-300 text-sm">
-                      <span className="flex items-center"><User size={14} className="mr-2" /> Amit Das</span>
-                      <span className="flex items-center"><Calendar size={14} className="mr-2" /> Oct 15, 2024</span>
-                      <span className="flex items-center"><Clock size={14} className="mr-2" /> 12 min read</span>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-2">
-                      <Link to="/knowledge-center/1" className="inline-flex items-center space-x-2 text-white font-bold bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl transition-all shadow-lg">
-                        <span>Read Article</span>
-                        <ChevronRight size={18} />
-                      </Link>
-                      
-                      <div className="flex items-center space-x-3 p-1 rounded-xl">
-                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1 uppercase tracking-tighter mr-1">
-                          <Share2 size={12} /> Share:
-                        </span>
-                        <button 
-                          onClick={() => shareContent('linkedin', 'Mastering Digital Marketing in the Post-AI Era')}
-                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-600 flex items-center justify-center text-white transition-all backdrop-blur-sm"
-                          aria-label="Share on LinkedIn"
-                        >
-                          <Linkedin size={18} />
-                        </button>
-                        <button 
-                          onClick={() => shareContent('twitter', 'Mastering Digital Marketing in the Post-AI Era')}
-                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-slate-900 flex items-center justify-center text-white transition-all backdrop-blur-sm"
-                          aria-label="Share on Twitter"
-                        >
-                          <Twitter size={18} />
-                        </button>
-                        <button 
-                          onClick={() => shareContent('facebook', 'Mastering Digital Marketing in the Post-AI Era')}
-                          className="w-10 h-10 rounded-full bg-slate-800/50 hover:bg-blue-800 flex items-center justify-center text-white transition-all backdrop-blur-sm"
-                          aria-label="Share on Facebook"
-                        >
-                          <Facebook size={18} />
-                        </button>
-                      </div>
-                    </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             {displayedPosts.map((post) => (
-              <article key={post.id} className="group space-y-6 flex flex-col h-full">
-                <Link to={`/knowledge-center/${post.id}`} className="block aspect-[16/10] rounded-3xl overflow-hidden shadow-lg border border-slate-100 relative">
-                   <img src={post.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={post.title} />
-                   <div className="absolute top-4 right-4 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={(e) => { e.preventDefault(); shareContent('linkedin', post.title); }}
-                        className="w-8 h-8 rounded-full bg-white text-blue-600 shadow-md flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
-                      >
-                        <Linkedin size={14} />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.preventDefault(); shareContent('twitter', post.title); }}
-                        className="w-8 h-8 rounded-full bg-white text-slate-900 shadow-md flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all"
-                      >
-                        <Twitter size={14} />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.preventDefault(); shareContent('facebook', post.title); }}
-                        className="w-8 h-8 rounded-full bg-white text-blue-800 shadow-md flex items-center justify-center hover:bg-blue-800 hover:text-white transition-all"
-                      >
-                        <Facebook size={14} />
-                      </button>
+              <article key={post.id} className="group flex flex-col h-full">
+                <Link to={`/knowledge-center/${post.id}`} className="block aspect-[16/10] rounded-[2rem] overflow-hidden shadow-lg border border-slate-100 relative mb-6">
+                   <img src={post.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={post.title} />
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                      <div className="flex space-x-2">
+                        <button onClick={(e) => { e.preventDefault(); shareContent('linkedin', post.title); }} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-blue-600 transition-all"><Linkedin size={18} /></button>
+                        <button onClick={(e) => { e.preventDefault(); shareContent('twitter', post.title); }} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center hover:bg-slate-900 transition-all"><Twitter size={18} /></button>
+                      </div>
                    </div>
                 </Link>
                 <div className="space-y-4 flex flex-col flex-grow">
-                   <div className="flex items-center justify-between">
-                      <button 
-                        onClick={() => setSelectedCategory(post.category)}
-                        className="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline"
-                      >
-                        {post.category}
-                      </button>
-                      <span className="text-slate-400 text-xs flex items-center"><Clock size={12} className="mr-1" /> {post.readTime}</span>
+                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em]">
+                      <span className="text-blue-600">{post.category}</span>
+                      <span className="text-slate-400 flex items-center"><Clock size={12} className="mr-1" /> {post.readTime}</span>
                    </div>
                    <Link to={`/knowledge-center/${post.id}`}>
                      <h3 className="text-2xl font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
                         {post.title}
                      </h3>
                    </Link>
-                   <p className="text-slate-600 leading-relaxed line-clamp-2">
+                   <p className="text-slate-500 leading-relaxed line-clamp-2 text-sm">
                       {post.excerpt}
                    </p>
-                   <div className="pt-4 mt-auto flex items-center justify-between border-t border-slate-50">
-                      <Link to={`/knowledge-center/${post.id}`} className="flex items-center space-x-1 font-bold text-slate-900 hover:text-blue-600 transition-colors">
-                         <span>Read More</span>
-                         <ChevronRight size={16} className="text-blue-600" />
+                   <div className="pt-6 mt-auto flex items-center justify-between border-t border-slate-100">
+                      <Link to={`/knowledge-center/${post.id}`} className="flex items-center space-x-2 font-bold text-slate-900 hover:text-blue-600 transition-all">
+                         <span className="text-sm">Explore Strategy</span>
+                         <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                       </Link>
-                      <div className="flex items-center space-x-2">
-                        <button 
-                          onClick={() => shareContent('twitter', post.title)}
-                          className="text-slate-400 hover:text-blue-400 transition-colors"
-                          aria-label="Quick share on Twitter"
-                        >
-                          <Twitter size={14} />
-                        </button>
-                        <button 
-                          onClick={() => shareContent('linkedin', post.title)}
-                          className="text-slate-400 hover:text-blue-600 transition-colors"
-                          aria-label="Quick share on LinkedIn"
-                        >
-                          <Linkedin size={14} />
-                        </button>
-                      </div>
                    </div>
                 </div>
               </article>
             ))}
-            
-            {filteredPosts.length === 0 && (
-              <div className="col-span-full py-20 text-center space-y-4">
-                <p className="text-slate-500 text-lg italic">No articles match your search in this category. Try switching filters or search terms!</p>
-                <button 
-                  onClick={() => { setSelectedCategory('All'); setSearchQuery(''); }}
-                  className="text-blue-600 font-bold hover:underline"
-                >
-                  Clear all filters
-                </button>
-              </div>
-            )}
           </div>
 
           {totalPages > 1 && (
@@ -452,56 +326,33 @@ const Blog = () => {
               <button 
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                aria-label="Previous page"
+                className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 transition-all"
               >
                 <ChevronLeft size={20} />
               </button>
-
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                 <button 
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`w-12 h-12 rounded-xl font-bold transition-all flex items-center justify-center ${
+                  className={`w-12 h-12 rounded-2xl font-bold text-sm transition-all flex items-center justify-center ${
                     currentPage === page 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'bg-blue-600 text-white shadow-lg' 
+                    : 'bg-white border border-slate-200 text-slate-600'
                   }`}
                 >
                   {page}
                 </button>
               ))}
-
               <button 
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="w-12 h-12 rounded-xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                aria-label="Next page"
+                className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 transition-all"
               >
                 <ChevronRight size={20} />
               </button>
             </div>
           )}
         </div>
-      </section>
-
-      <section className="py-24 bg-slate-900">
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-[3rem] p-12 md:p-20 text-center space-y-8">
-               <h2 className="text-4xl font-extrabold text-white">Join the Growth Insider</h2>
-               <p className="text-blue-100 text-lg max-w-xl mx-auto">Get monthly marketing playbooks and case studies delivered straight to your inbox. No spam, just value.</p>
-               <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4" onSubmit={(e) => e.preventDefault()}>
-                  <input 
-                    type="email" 
-                    placeholder="Enter your email" 
-                    className="flex-grow px-6 py-4 rounded-xl bg-white outline-none focus:ring-4 focus:ring-blue-300 transition-all"
-                  />
-                  <button className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-xl">
-                    Subscribe
-                  </button>
-               </form>
-            </div>
-         </div>
       </section>
     </div>
   );

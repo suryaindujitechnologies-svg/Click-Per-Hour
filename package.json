@@ -1,4 +1,3 @@
-
 {
   "name": "click-per-hour",
   "private": true,
@@ -17,6 +16,7 @@
     "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
+    "@types/node": "^22.13.4",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
