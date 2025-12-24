@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { MemoryRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -24,6 +23,8 @@ import CaseStudies from './pages/CaseStudies';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import Contact from './pages/Contact';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 // Dedicated Service Pages
 import SEOService from './pages/services/SEO';
@@ -110,7 +111,10 @@ const Navbar = () => {
     return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   };
 
-  const closeMobileMenu = () => setIsOpen(false);
+  const closeMobileMenu = () => {
+    setIsOpen(false);
+    setIsServicesOpen(false);
+  };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
@@ -150,15 +154,12 @@ const Navbar = () => {
               </button>
               
               {isServicesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-100 py-2 overflow-hidden">
                   {servicesLinks.map((service) => (
                     <Link
                       key={service.name}
                       to={service.path}
-                      onClick={() => {
-                        setIsServicesOpen(false);
-                        closeMobileMenu();
-                      }}
+                      onClick={closeMobileMenu}
                       className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50 ${
                         location.pathname === service.path ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
                       }`}
@@ -359,9 +360,8 @@ const App = () => {
             <Route path="/knowledge-center" element={<Blog />} />
             <Route path="/knowledge-center/:id" element={<BlogPostDetail />} />
             <Route path="/contact-us" element={<Contact />} />
-            {/* Legal Placeholders */}
-            <Route path="/privacy-policy" element={<div className="pt-32 text-center h-screen">Privacy Policy Content</div>} />
-            <Route path="/terms-of-service" element={<div className="pt-32 text-center h-screen">Terms of Service Content</div>} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
           </Routes>
         </main>
         <Footer />
