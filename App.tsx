@@ -110,11 +110,13 @@ const Navbar = () => {
     return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
   };
 
+  const closeMobileMenu = () => setIsOpen(false);
+
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
+          <Link to="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">C</div>
             <span className="text-2xl font-extrabold tracking-tight text-slate-900">
               Click<span className="text-blue-600">Per</span>Hour
@@ -153,7 +155,10 @@ const Navbar = () => {
                     <Link
                       key={service.name}
                       to={service.path}
-                      onClick={() => setIsServicesOpen(false)}
+                      onClick={() => {
+                        setIsServicesOpen(false);
+                        closeMobileMenu();
+                      }}
                       className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50 ${
                         location.pathname === service.path ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
                       }`}
@@ -199,7 +204,7 @@ const Navbar = () => {
               key={link.name}
               to={link.path}
               className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
-              onClick={() => setIsOpen(false)}
+              onClick={closeMobileMenu}
             >
               {link.name}
             </Link>
@@ -212,7 +217,7 @@ const Navbar = () => {
                 key={service.name}
                 to={service.path}
                 className={`block py-2 pl-4 text-base font-medium ${location.pathname === service.path ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}
-                onClick={() => setIsOpen(false)}
+                onClick={closeMobileMenu}
               >
                 {service.name}
               </Link>
@@ -224,7 +229,7 @@ const Navbar = () => {
               key={link.name}
               to={link.path}
               className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
-              onClick={() => setIsOpen(false)}
+              onClick={closeMobileMenu}
             >
               {link.name}
             </Link>
@@ -232,7 +237,7 @@ const Navbar = () => {
           <Link
             to="/contact-us"
             className="block bg-blue-600 text-white px-5 py-3 mt-4 rounded-lg font-bold text-center"
-            onClick={() => setIsOpen(false)}
+            onClick={closeMobileMenu}
           >
             Get Free Audit
           </Link>
@@ -314,8 +319,8 @@ const Footer = () => {
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500 space-y-4 md:space-y-0">
           <p>© 2024 Click Per Hour Digital Marketing Agency. All rights reserved.</p>
           <div className="flex space-x-6">
-            <a href="#" className="hover:text-blue-400">Privacy Policy</a>
-            <a href="#" className="hover:text-blue-400">Terms of Service</a>
+            <Link to="/privacy-policy" className="hover:text-blue-400">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-blue-400">Terms of Service</Link>
           </div>
         </div>
       </div>
@@ -354,6 +359,9 @@ const App = () => {
             <Route path="/knowledge-center" element={<Blog />} />
             <Route path="/knowledge-center/:id" element={<BlogPostDetail />} />
             <Route path="/contact-us" element={<Contact />} />
+            {/* Legal Placeholders */}
+            <Route path="/privacy-policy" element={<div className="pt-32 text-center h-screen">Privacy Policy Content</div>} />
+            <Route path="/terms-of-service" element={<div className="pt-32 text-center h-screen">Terms of Service Content</div>} />
           </Routes>
         </main>
         <Footer />

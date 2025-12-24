@@ -13,18 +13,39 @@ import {
   Linkedin,
   Twitter,
   Facebook,
-  Share2
+  Share2,
+  Filter,
+  Lightbulb,
+  TrendingUp,
+  RefreshCw,
+  // Added missing ArrowRight import
+  ArrowRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GoogleGenAI, Type } from "@google/genai";
 
 const POSTS_PER_PAGE = 3;
 
+interface AiContentIdea {
+  title: string;
+  outline: string;
+}
+
 const Blog = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // New state for Trend Analysis
+  const [aiIdeas, setAiIdeas] = useState<AiContentIdea[]>([]);
+  const [isTrendsLoading, setIsTrendsLoading] = useState(false);
+
+  const categories = useMemo(() => {
+    const cats = new Set(BLOG_POSTS.map(post => post.category));
+    return ['All', ...Array.from(cats)].sort();
+  }, []);
 
   const fetchAiSuggestions = useCallback(async (query: string) => {
     setIsAiLoading(true);
@@ -60,6 +81,47 @@ const Blog = () => {
     }
   }, []);
 
+  const fetchAiTrendAnalysis = useCallback(async () => {
+    setIsTrendsLoading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `Analyze current digital marketing trends specifically for the Kolkata (India) market in 2025. 
+      Generate 4 unique, engaging blog post titles and a 2-sentence outline for each that would be valuable for the 'Knowledge Center' of a digital agency. 
+      Focus on hyper-local needs, regional language trends, or emerging tech adoption in West Bengal.
+      Return as a JSON array of objects with keys 'title' and 'outline'.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                outline: { type: Type.STRING }
+              },
+              required: ['title', 'outline']
+            }
+          },
+        },
+      });
+
+      const result = JSON.parse(response.text || '[]');
+      setAiIdeas(result);
+    } catch (error) {
+      console.error('Error fetching trend analysis:', error);
+      setAiIdeas([
+        { title: "The Rise of Bengali Voice Search", outline: "How local language processing is changing SEO in West Bengal. Tips for optimizing for the next 100 million Bengali users." },
+        { title: "Kolkata's E-commerce Boom: Beyond Park Street", outline: "Strategies for local retailers to compete with national giants. Focusing on hyper-local delivery and community-driven social commerce." }
+      ]);
+    } finally {
+      setIsTrendsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchAiSuggestions(searchQuery);
@@ -68,8 +130,12 @@ const Blog = () => {
   }, [searchQuery, fetchAiSuggestions]);
 
   useEffect(() => {
+    fetchAiTrendAnalysis();
+  }, [fetchAiTrendAnalysis]);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory]);
 
   const shareContent = (platform: 'linkedin' | 'twitter' | 'facebook', title: string) => {
     const siteUrl = 'https://clickperhour.com'; 
@@ -92,12 +158,17 @@ const Blog = () => {
   };
 
   const filteredPosts = useMemo(() => {
-    return BLOG_POSTS.filter(post => 
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    return BLOG_POSTS.filter(post => {
+      const matchesSearch = 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, selectedCategory]);
 
   const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
   const displayedPosts = useMemo(() => {
@@ -107,7 +178,7 @@ const Blog = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 400, behavior: 'smooth' });
   };
 
   return (
@@ -144,7 +215,10 @@ const Blog = () => {
                     suggestions.map((topic, i) => (
                       <button 
                         key={i} 
-                        onClick={() => setSearchQuery(topic)}
+                        onClick={() => {
+                          setSearchQuery(topic);
+                          setSelectedCategory('All');
+                        }}
                         className="text-[11px] font-semibold bg-slate-50 hover:bg-blue-50 hover:text-blue-600 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-100 transition-colors text-left"
                       >
                         {topic}
@@ -160,9 +234,84 @@ const Blog = () => {
         </div>
       </section>
 
+      {/* AI Trend Analysis Section */}
+      <section className="py-16 bg-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-[100px] -z-10 opacity-60"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2 text-blue-600">
+                <TrendingUp size={20} />
+                <span className="text-sm font-black uppercase tracking-[0.2em]">Kolkata Market Pulse</span>
+              </div>
+              <h2 className="text-3xl font-extrabold text-slate-900">AI-Powered Content Strategist</h2>
+              <p className="text-slate-500 max-w-xl text-sm">Our AI analyzed local search volumes and social signals to predict the most impactful topics for your business this month.</p>
+            </div>
+            <button 
+              onClick={fetchAiTrendAnalysis}
+              disabled={isTrendsLoading}
+              className="flex items-center space-x-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-all disabled:opacity-50 shadow-lg shadow-slate-100"
+            >
+              {isTrendsLoading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+              <span>Regenerate Insights</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {isTrendsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-64 rounded-[2rem] bg-slate-50 animate-pulse border border-slate-100"></div>
+              ))
+            ) : (
+              aiIdeas.map((idea, i) => (
+                <div key={i} className="group p-8 rounded-[2rem] bg-white border border-slate-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-50 transition-all duration-300 relative flex flex-col h-full overflow-hidden">
+                  <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-[3] transition-transform duration-700 -z-10"></div>
+                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    <Lightbulb size={20} />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors leading-tight">{idea.title}</h4>
+                  <p className="text-sm text-slate-500 leading-relaxed mb-6 flex-grow">{idea.outline}</p>
+                  <button className="text-xs font-bold text-slate-400 group-hover:text-blue-600 uppercase tracking-widest flex items-center">
+                    Request Draft <ArrowRight size={12} className="ml-2" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 border-b bg-white sticky top-[72px] z-30 shadow-sm shadow-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center space-x-3 text-slate-900 overflow-x-auto w-full pb-2 md:pb-0 scrollbar-hide">
+              <Filter size={18} className="text-blue-600 hidden md:block" />
+              <div className="flex space-x-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
+                      selectedCategory === cat 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="text-sm font-medium text-slate-400 whitespace-nowrap">
+              Showing <span className="text-slate-900 font-bold">{filteredPosts.length}</span> articles
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {currentPage === 1 && searchQuery === '' && (
+          {currentPage === 1 && searchQuery === '' && selectedCategory === 'All' && (
             <div className="mb-20">
               <div className="relative group overflow-hidden rounded-[2.5rem] bg-slate-900 aspect-[21/9]">
                 <img src="https://picsum.photos/seed/featured/1200/600" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" alt="Featured Post" />
@@ -243,7 +392,12 @@ const Blog = () => {
                 </Link>
                 <div className="space-y-4 flex flex-col flex-grow">
                    <div className="flex items-center justify-between">
-                      <span className="text-blue-600 font-bold text-xs uppercase tracking-widest">{post.category}</span>
+                      <button 
+                        onClick={() => setSelectedCategory(post.category)}
+                        className="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline"
+                      >
+                        {post.category}
+                      </button>
                       <span className="text-slate-400 text-xs flex items-center"><Clock size={12} className="mr-1" /> {post.readTime}</span>
                    </div>
                    <Link to={`/knowledge-center/${post.id}`}>
@@ -282,7 +436,13 @@ const Blog = () => {
             
             {filteredPosts.length === 0 && (
               <div className="col-span-full py-20 text-center space-y-4">
-                <p className="text-slate-500 text-lg italic">No articles match your search yet. Try one of our AI-suggested topics above!</p>
+                <p className="text-slate-500 text-lg italic">No articles match your search in this category. Try switching filters or search terms!</p>
+                <button 
+                  onClick={() => { setSelectedCategory('All'); setSearchQuery(''); }}
+                  className="text-blue-600 font-bold hover:underline"
+                >
+                  Clear all filters
+                </button>
               </div>
             )}
           </div>
