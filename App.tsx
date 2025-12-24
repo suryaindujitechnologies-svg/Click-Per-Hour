@@ -70,6 +70,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -86,6 +87,26 @@ const Navbar = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleMouseEnter = () => {
+    if (window.innerWidth >= 768) {
+      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+      setIsServicesOpen(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.innerWidth >= 768) {
+      timeoutRef.current = window.setTimeout(() => {
+        setIsServicesOpen(false);
+      }, 150);
+    }
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    setIsServicesOpen(false);
+  };
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -108,19 +129,20 @@ const Navbar = () => {
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname !== '/') return false;
-    return location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+    if (path === '/knowledge-center') return location.pathname.startsWith('/knowledge-center');
+    return location.pathname === path;
   };
 
-  const closeMobileMenu = () => {
-    setIsOpen(false);
-    setIsServicesOpen(false);
-  };
+  const getLinkStyles = (path: string) => 
+    `text-sm font-semibold transition-colors hover:text-blue-600 ${
+      isActive(path) ? 'text-blue-600' : 'text-slate-600'
+    }`;
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'glass-nav py-3' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
+          <Link to="/" className="flex items-center space-x-2" onClick={closeMenu}>
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">C</div>
             <span className="text-2xl font-extrabold tracking-tight text-slate-900">
               Click<span className="text-blue-600">Per</span>Hour
@@ -130,36 +152,36 @@ const Navbar = () => {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
-                  isActive(link.path) ? 'text-blue-600' : 'text-slate-600'
-                }`}
-              >
+              <Link key={link.name} to={link.path} className={getLinkStyles(link.path)} onClick={closeMenu}>
                 {link.name}
               </Link>
             ))}
             
             {/* Services Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsServicesOpen(!isServicesOpen)}
+            <div 
+              className="relative" 
+              ref={dropdownRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <Link 
+                to="/services"
                 className={`flex items-center space-x-1 text-sm font-semibold transition-colors hover:text-blue-600 ${
                   location.pathname.startsWith('/services') ? 'text-blue-600' : 'text-slate-600'
                 }`}
+                onClick={() => setIsServicesOpen(false)}
               >
                 <span>Services</span>
                 <ChevronDown size={14} className={`transition-transform ${isServicesOpen ? 'rotate-180' : ''}`} />
-              </button>
+              </Link>
               
               {isServicesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-100 py-2 overflow-hidden">
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border border-slate-100 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   {servicesLinks.map((service) => (
                     <Link
                       key={service.name}
                       to={service.path}
-                      onClick={closeMobileMenu}
+                      onClick={closeMenu}
                       className={`block px-4 py-2.5 text-sm font-medium transition-colors hover:bg-slate-50 ${
                         location.pathname === service.path ? 'text-blue-600 bg-blue-50' : 'text-slate-700'
                       }`}
@@ -172,13 +194,7 @@ const Navbar = () => {
             </div>
 
             {otherLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
-                  isActive(link.path) ? 'text-blue-600' : 'text-slate-600'
-                }`}
-              >
+              <Link key={link.name} to={link.path} className={getLinkStyles(link.path)} onClick={closeMenu}>
                 {link.name}
               </Link>
             ))}
@@ -205,24 +221,34 @@ const Navbar = () => {
               key={link.name}
               to={link.path}
               className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
-              onClick={closeMobileMenu}
+              onClick={closeMenu}
             >
               {link.name}
             </Link>
           ))}
           
           <div className="px-3 py-2">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Our Services</p>
-            {servicesLinks.map((service) => (
-              <Link
-                key={service.name}
-                to={service.path}
-                className={`block py-2 pl-4 text-base font-medium ${location.pathname === service.path ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}
-                onClick={closeMobileMenu}
-              >
-                {service.name}
-              </Link>
-            ))}
+            <button 
+              onClick={() => setIsServicesOpen(!isServicesOpen)}
+              className="flex items-center justify-between w-full text-lg font-medium text-slate-700 hover:text-blue-600"
+            >
+              <span>Services</span>
+              <ChevronDown size={20} className={`transition-transform ${isServicesOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isServicesOpen && (
+              <div className="mt-2 space-y-1 bg-slate-50 rounded-lg p-2">
+                {servicesLinks.map((service) => (
+                  <Link
+                    key={service.name}
+                    to={service.path}
+                    className={`block py-2 px-3 text-base font-medium rounded-md ${location.pathname === service.path ? 'text-blue-600 bg-blue-100' : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'}`}
+                    onClick={closeMenu}
+                  >
+                    {service.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {otherLinks.map((link) => (
@@ -230,7 +256,7 @@ const Navbar = () => {
               key={link.name}
               to={link.path}
               className={`block px-3 py-2 text-lg font-medium rounded-lg ${isActive(link.path) ? 'text-blue-600 bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
-              onClick={closeMobileMenu}
+              onClick={closeMenu}
             >
               {link.name}
             </Link>
@@ -238,7 +264,7 @@ const Navbar = () => {
           <Link
             to="/contact-us"
             className="block bg-blue-600 text-white px-5 py-3 mt-4 rounded-lg font-bold text-center"
-            onClick={closeMobileMenu}
+            onClick={closeMenu}
           >
             Get Free Audit
           </Link>
